@@ -1,0 +1,39 @@
+#####################################################
+# Comparing Linear and Non-linear model for best fit
+#####################################################
+
+# Collect data on H and DBH
+Puud99<-foreign::read.dbf("puud99.dbf",as.is = TRUE)[1:12]
+
+# Change all column heads in Puud99 to lower cases
+names(Puud99)<-tolower(names(Puud99))
+
+# Solve for and input values for diameter (h)
+Puud99$d<-with(Puud99,ifelse(d2>0,(d1+d2)/2,d1))
+
+# Separating Puud99 data according to tree specie (using Pine)
+Pine<-subset(Puud99,pl=="MA")
+
+# Removing rows with "NA" height values to get model trees
+Pine<- Pine[!is.na(Pine$h), ]
+
+# Selecting data for only sample plot "100"
+Pine100<-subset(Pine,prt==100)
+
+# Fit linear model to data Pine100
+lm(h~d,Pine100)
+
+# Find residual error
+summary(lm(h~d,Pine100))
+
+# Define and fit non-linear model to data Pine100
+# Define non-linear model, using the non-linear least square function (nls)
+# Use initial parameter guesses (a=1,b=1)
+nlm <- nls(h ~ a * d^b, data = Pine100, start = list(a = 1, b = 1))
+
+summary(nlm)
+
+# Linear model "h~d" produced residual standard error of 1.618 on 12 degrees of freedom
+# Non-Linear model "h~a*d^b" produced a residual standard error of 1.597 on 12 degrees of freedom
+
+# Considering that lower RSE means better fit, shows that NLM is best fit
